@@ -1,0 +1,8 @@
+.container article {
+  margin: 4px 0;
+}
+
+.container h1,
+.container h2 {
+  margin: 8px 0;
+}

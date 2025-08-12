@@ -1,0 +1,44 @@
+{
+  "name": "examap",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ant-design/cssinjs": "^1.18.2",
+    "@next/third-parties": "^14.0.3",
+    "@prisma/client": "^5.7.0",
+    "antd": "^5.11.0",
+    "axios": "^1.6.2",
+    "bcrypt": "^5.1.1",
+    "classnames": "^2.3.2",
+    "dayjs": "^1.11.10",
+    "jsonwebtoken": "^9.0.2",
+    "next": "14.0.1",
+    "next-auth": "^4.24.4",
+    "nodemailer": "^6.9.7",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-helmet": "^6.1.0",
+    "react-markdown": "^9.0.1",
+    "react-share": "^5.0.3",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20",
+    "@types/nodemailer": "^6.4.14",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/react-helmet": "^6.1.9",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.1",
+    "prisma": "^5.7.0",
+    "typescript": "^5"
+  }
+}

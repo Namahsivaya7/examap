@@ -1,0 +1,351 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum LoginType {
+  Normal
+  GitHub
+  Gmail
+  Facebook
+}
+
+model User {
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt       DateTime    @default(now()) 
+  updatedAt       DateTime    @updatedAt 
+  email           String      @unique
+  name            String
+  emailVerified   Boolean     @default(false)
+  password        String?
+  phone           String?
+  address         String?
+  occupation      String?   
+  loginType       LoginType   @default(Normal)
+  avatar          String?
+  exams           Exam[]
+  stars           Star[]
+  attempts        Attempt[]
+  questions       Question[]
+  tests           Test[]
+  orders          Order[]
+}
+
+type Organisation {
+  name        String
+  address     String
+}
+
+type Option {
+  id String
+  label String
+  isAnswer Boolean?
+}
+
+enum AnswerType {
+  Essay 
+  Single
+  Multi
+}
+
+enum QuestionStatus {
+  Public // Can be attach to any exam (Available in the library)
+  Private // Attached to the specific exam
+  InActive  // Archived, (not in use)
+}
+
+model Question {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  subjectId   String          @db.ObjectId
+  subject     Subject         @relation(fields: [subjectId], references: [id])
+  options     Option[]
+  answer      String?     
+  answerType  AnswerType 
+  marks       Int             @default(1)
+  status      QuestionStatus  @default(Public)
+  userId      String          @db.ObjectId
+  user        User            @relation(fields: [userId], references: [id])
+  examIds     String[]        @db.ObjectId
+  exams       Exam[]          @relation(fields: [examIds], references: [id])
+}
+
+model Star {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String  @db.ObjectId  
+  user          User    @relation(fields: [userId], references: [id])   
+  examId        String  @db.ObjectId    
+  exam          Exam    @relation("ExamStars", fields: [examId], references: [id]) 
+}
+
+model Subject {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  name          String  @unique  
+  description   String? @default("")
+  exams         Exam[]
+  questions     Question[]
+}
+
+enum ExamStatus {
+  Draft
+  Published
+  Private
+  Archived
+}
+
+enum CurrencyCode {
+  USD
+  CAD
+  EUR
+  AED
+  AFN
+  ALL
+  AMD
+  ARS
+  AUD
+  AZN
+  BAM
+  BDT
+  BGN
+  BHD
+  BIF
+  BND
+  BOB
+  BRL
+  BWP
+  BYN
+  BZD
+  CDF
+  CHF
+  CLP
+  CNY
+  COP
+  CRC
+  CVE
+  CZK
+  DJF
+  DKK
+  DOP
+  DZD
+  EEK
+  EGP
+  ERN
+  ETB
+  GBP
+  GEL
+  GHS
+  GNF
+  GTQ
+  HKD
+  HNL
+  HRK
+  HUF
+  IDR
+  ILS
+  INR
+  IQD
+  IRR
+  ISK
+  JMD
+  JOD
+  JPY
+  KES
+  KHR
+  KMF
+  KRW
+  KWD
+  KZT
+  LBP
+  LKR
+  LTL
+  LVL
+  LYD
+  MAD
+  MDL
+  MGA
+  MKD
+  MMK
+  MOP
+  MUR
+  MXN
+  MYR
+  MZN
+  NAD
+  NGN
+  NIO
+  NOK
+  NPR
+  NZD
+  OMR
+  PAB
+  PEN
+  PHP
+  PKR
+  PLN
+  PYG
+  QAR
+  RON
+  RSD
+  RUB
+  RWF
+  SAR
+  SDG
+  SEK
+  SGD
+  SOS
+  SYP
+  THB
+  TND
+  TOP
+  TRY
+  TTD
+  TWD
+  TZS
+  UAH
+  UGX
+  UYU
+  UZS
+  VEF
+  VND
+  XAF
+  XOF
+  YER
+  ZAR
+  ZMK
+  ZWL
+}
+
+type ExamPricing {
+  price         Float           @default(0)
+  currency      CurrencyCode    @default(INR)
+  maxAttempts   Int             @default(5)
+}
+
+model Exam {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt       DateTime      @default(now()) 
+  updatedAt       DateTime      @updatedAt 
+
+  title           String
+  subjectId       String        @db.ObjectId
+  subject         Subject       @relation(fields: [subjectId], references: [id])
+  benchmark       Float         @default(40.0) // In percent
+  tags            String[]
+  org             Organisation
+  avatar          String?
+  description     String?
+  manualAssess    Boolean       @default(false)        // Cases where exam have an Assay type questions and need manual correction
+
+  ownerId         String        @db.ObjectId
+  owner           User          @relation(fields: [ownerId], references: [id])
+  
+  questionIds     String[]      @db.ObjectId
+  questions       Question[]    @relation(fields: [questionIds], references: [id])
+
+  status          ExamStatus    @default(Draft)
+
+  timer           Int           @default(30) // Time in minutes to complete the exam
+
+  stars           Star[]        @relation("ExamStars")
+  star_count      Int           @default(0)
+
+  attempts        Attempt[]     @relation("ExamAttempts")
+  attempt_count   Int           @default(0)
+
+  tests           Test[]
+  pricing         ExamPricing?
+  orders          Order[]
+}
+
+enum ResultStatus {
+  Passed
+  Failed
+  NotAttemted
+}
+
+type ExamResult {
+  status  ResultStatus
+  score   Float
+  total   Int
+  each    Json // {[questionId]: boolean}
+}
+
+enum AttemptStatus {
+  Created     // Default
+  // ||
+  // \/
+  InProgress  // when startTime updates
+  //  ||  
+  //  \/
+  Elapsed     // never submitted. 
+  //  ||      
+  //  ||      // Submitted - Manual or automatic submit
+  //  \/
+  InReview    // For exams that need manual correction
+  //  ||
+  //  \/
+  Assessed    // If attempt is assessed eithe manually or automatic 
+}
+
+model Attempt {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime        @default(now()) 
+  updatedAt     DateTime        @updatedAt
+  startTime     DateTime?
+  userId        String          @db.ObjectId
+  user          User            @relation(fields: [userId], references: [id])   
+  examId        String          @db.ObjectId
+  exam          Exam            @relation("ExamAttempts", fields: [examId], references: [id]) 
+  responses     Json            @default("{}") // {[questionId]: Answer[]}
+  result        ExamResult?
+  deviatedCount Int             @default(0)
+  status        AttemptStatus   @default(Created)
+  testId        String?         @db.ObjectId
+  test          Test?           @relation(fields: [testId], references: [id])
+  orderId       String?         @db.ObjectId
+  Order         Order?          @relation(fields: [orderId], references: [id])
+}
+
+enum TestStatus {
+  Active
+  InActive  // Doesn't take further attempts
+}
+
+model Test {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime    @default(now()) 
+  name          String 
+  ownerId       String      @db.ObjectId
+  owner         User        @relation(fields: [ownerId], references: [id])   
+  examId        String      @db.ObjectId
+  exam          Exam        @relation(fields: [examId], references: [id])   
+  attempt_count Int         @default(0)
+  attempts      Attempt[]
+  status        TestStatus  @default(Active)
+}
+
+enum OrderStatus {
+  Created
+  Paid
+  Failed
+  Expired
+}
+
+model Order {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime    @default(now()) 
+  userId        String      @db.ObjectId
+  user          User        @relation(fields: [userId], references: [id])   
+  examId        String      @db.ObjectId
+  exam          Exam        @relation(fields: [examId], references: [id])
+  attempt_count Int         @default(0)
+  attempts      Attempt[]
+  status        OrderStatus @default(Created)
+}
