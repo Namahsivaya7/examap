@@ -1,7 +1,7 @@
 import { appName } from "@/utils/config";
 import nodemailer from "nodemailer";
 
-console.log("ENV", process.env);
+//console.log("ENV", process.env);
 
 const mailer = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
