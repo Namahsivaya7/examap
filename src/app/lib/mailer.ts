@@ -1,25 +1,36 @@
 import { appName } from "@/utils/config";
 import nodemailer from "nodemailer";
 
-console.log("ENV", process.env);
+const hasSmtpConfig = Boolean(
+  process.env.EMAIL_HOST && process.env.EMAIL_ADDRESS && process.env.EMAIL_PASSWORD
+);
 
-const mailer = nodemailer.createTransport({
+const transportOptions: any = {
   host: process.env.EMAIL_HOST,
-  secure: true,
+  secure: process.env.EMAIL_SECURE === "true" || true,
   port: Number(process.env.EMAIL_PORT) || 465,
-  auth: {
+};
+
+if (hasSmtpConfig) {
+  transportOptions.auth = {
     user: process.env.EMAIL_ADDRESS,
     pass: process.env.EMAIL_PASSWORD,
-  },
-});
+  };
+}
 
-mailer.verify(function (error, success) {
-  if (error) {
-    console.log(error);
-  } else {
-    console.log("Server is ready to take our messages");
-  }
-});
+const mailer = nodemailer.createTransport(transportOptions);
+
+if (hasSmtpConfig) {
+  mailer.verify(function (error, success) {
+    if (error) {
+      console.warn("Mailer verify error:", error);
+    } else {
+      console.log("Server is ready to take our messages");
+    }
+  });
+} else {
+  console.warn("Mailer not configured: EMAIL_HOST/EMAIL_ADDRESS/EMAIL_PASSWORD missing. Skipping verify.");
+}
 
 export const generateMailOptions = (
   to: string,
