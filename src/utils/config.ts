@@ -1,4 +1,4 @@
 export const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "Examap";
 export const siteAddress =
-  process.env.NEXT_PUBLIC_SITE_ADDRESS ?? "https://examapp-topaz.vercel.app/";
+  process.env.NEXT_PUBLIC_SITE_ADDRESS ?? "https://examapp-topaz.vercel.app/"
 export const appLogo = `${siteAddress}/logo.png`;
