@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { ExportOutlined, FileTextOutlined } from "@ant-design/icons";
 import { PATHS } from "@/utils/constants";
+import { isAdminEmail } from "@/utils/admin";
 import { AttemptType, ExamType } from "../../../types/prisma";
 import UserImage from "../auth/UserImage";
 import dayjs from "dayjs";
@@ -23,7 +24,8 @@ import { ResultStatus } from "@prisma/client";
 import { ColumnsType } from "antd/es/table";
 import ExamResult, { Assessment } from "./ExamResult";
 import { useSearchParams } from "next/navigation";
-import { submitAssessment } from "@/app/lib/api";
+import { getAttempt, submitAssessment } from "@/app/lib/api";
+import { useSession } from "next-auth/react";
 dayjs.extend(relativeTime);
 
 interface AttemptsProps {
@@ -75,11 +77,18 @@ const userColumns: ColumnsType<AttemptType> = [
     render: (_, d) => <Typography>{d.user.email}</Typography>,
   },
   {
+    title: "Phone",
+    dataIndex: "user.phone",
+    ellipsis: true,
+    key: "phone",
+    render: (_, d) => <Typography>{d.user.phone || "—"}</Typography>,
+  },
+  {
     title: "Address",
     dataIndex: "user.address",
     ellipsis: true,
     key: "address",
-    render: (_, d) => <Typography>{d.user.address}</Typography>,
+    render: (_, d) => <Typography>{d.user.address || "—"}</Typography>,
   },
 ];
 
@@ -88,6 +97,8 @@ export default function Attempts({
   withoutUser = false,
   exam,
 }: AttemptsProps) {
+  const { data: session } = useSession();
+  const isAdmin = isAdminEmail(session?.user?.email);
   const {
     token: { padding },
   } = theme.useToken();
@@ -96,6 +107,24 @@ export default function Attempts({
   const attemptId = searchParams.get("id") ?? undefined;
 
   const [attempt, setAttempt] = useState<AttemptType | undefined>();
+  const [loadingAttempt, setLoadingAttempt] = useState(false);
+  const canViewAll = !!(exam && (isAdmin || exam.ownerId === session?.user.id));
+
+  const handleViewAttempt = async (record: AttemptType) => {
+    if (!exam || !canViewAll) {
+      setAttempt(record);
+      return;
+    }
+    setLoadingAttempt(true);
+    try {
+      const fullAttempt = await getAttempt(exam.id, record.id);
+      setAttempt(fullAttempt);
+    } catch {
+      setAttempt(record);
+    } finally {
+      setLoadingAttempt(false);
+    }
+  };
 
   const columns: ColumnsType<AttemptType> = useMemo(
     () => [
@@ -118,17 +147,35 @@ export default function Attempts({
         ),
         sorter: (a, b) => (a.result?.score ?? 0) - (b.result?.score ?? 0),
       },
+      ...(exam && (isAdmin || exam.ownerId === session?.user.id)
+        ? [
+            {
+              title: "Tab switches",
+              dataIndex: "deviatedCount",
+              key: "deviatedCount",
+              render: (_: unknown, d: AttemptType) => (
+                <Tag color={d.deviatedCount > 0 ? "orange" : "default"}>
+                  {d.deviatedCount ?? 0}
+                </Tag>
+              ),
+              sorter: (a: AttemptType, b: AttemptType) =>
+                (a.deviatedCount ?? 0) - (b.deviatedCount ?? 0),
+            },
+          ]
+        : []),
       {
-        title: "Status",
-        ellipsis: true,
-        dataIndex: "result.status",
-        key: "status",
+        title: "Attempt",
+        dataIndex: "status",
+        key: "attemptStatus",
+        render: (_: unknown, d: AttemptType) => <Tag>{d.status}</Tag>,
+      },
+      {
         render: (_, d) => (
           <Tag
             key="status"
             color={d.result?.status === ResultStatus.Passed ? "green" : "red"}
           >
-            {d.result?.status}
+            {d.result?.status ?? "Pending"}
           </Tag>
         ),
       },
@@ -151,11 +198,12 @@ export default function Attempts({
         render: (_, d) => (
           <Space>
             {exam && (
-              <Tooltip>
+              <Tooltip title="View answers and student details">
                 <Button
                   icon={<FileTextOutlined />}
                   type="link"
-                  onClick={() => setAttempt(d)}
+                  loading={loadingAttempt && attempt?.id === d.id}
+                  onClick={() => handleViewAttempt(d)}
                 />
               </Tooltip>
             )}
@@ -171,7 +219,7 @@ export default function Attempts({
         ),
       },
     ],
-    [exam, withoutUser]
+    [exam, withoutUser, isAdmin, session?.user.id, loadingAttempt, attempt?.id, canViewAll]
   );
 
   useEffect(() => {

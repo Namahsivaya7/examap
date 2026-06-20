@@ -10,7 +10,6 @@ import {
   Flex,
   Divider,
   Typography,
-  Result,
   Button,
   Space,
   Spin,
@@ -20,6 +19,7 @@ import {
   Popconfirm,
 } from "antd";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CaretRightOutlined,
   ReadOutlined,
@@ -36,6 +36,7 @@ import { appName } from "@/utils/config";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PATHS } from "@/utils/constants";
+import { isAdminEmail } from "@/utils/admin";
 import { useExamStore } from "@/store/examStore";
 import { ExamStatusColorMap } from "@/utils/util";
 import { ExamStatus, Question } from "@prisma/client";
@@ -43,7 +44,9 @@ import EditQuestion from "@/components/exam/EditQuestion";
 import { QuestionType } from "../../../../../types/prisma";
 
 export default function EditExam({ params }: { params: { examId: string } }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const isAdmin = isAdminEmail(session?.user?.email);
   const {
     token: {
       padding,
@@ -80,28 +83,24 @@ export default function EditExam({ params }: { params: { examId: string } }) {
   };
 
   useEffect(() => {
+    if (status === "loading") return;
+    if (!isAdmin) {
+      router.replace(PATHS.HOME);
+    }
+  }, [status, isAdmin, router]);
+
+  useEffect(() => {
     if (params.examId) {
       fetchExam(params.examId);
     }
     return resetExam;
   }, [params.examId, fetchExam, resetExam]);
 
-  const isAuthorised =
-    exam && session?.user.id && session?.user.id === exam?.ownerId;
-
-  if (exam && session?.user.id && !isAuthorised) {
+  if (status === "loading" || !isAdmin) {
     return (
-      <Result
-        status="warning"
-        title="You don't have access to this page"
-        extra={
-          <Link href="/">
-            <Button type="primary" key="home">
-              Back Home
-            </Button>
-          </Link>
-        }
-      />
+      <Flex justify="center" align="center" style={{ padding: padding * 2, minHeight: 200 }}>
+        <Spin />
+      </Flex>
     );
   }
 
@@ -173,7 +172,7 @@ export default function EditExam({ params }: { params: { examId: string } }) {
           {i + 1}. {question?.title}
         </Typography>
         <Space split>
-          {question.userId === session?.user.id && (
+          {isAdmin && (
             <Tooltip title="Edit this question">
               <Button
                 icon={<EditOutlined />}

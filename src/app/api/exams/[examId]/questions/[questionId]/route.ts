@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { isAdminEmail } from "@/utils/admin";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -29,6 +30,11 @@ export async function GET(request: NextRequest, { params }: ExamRequestParams) {
 
 export async function PUT(request: Request, { params }: ExamRequestParams) {
   const session = await getServerSession(authOptions);
+
+  if (!isAdminEmail(session?.user?.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   const update = await request.json();
   const { userId, subjectId, examId, ...rest } = update;
   const data = { ...rest };
@@ -42,7 +48,7 @@ export async function PUT(request: Request, { params }: ExamRequestParams) {
     },
   });
 
-  if (!questionOpt || questionOpt.userId !== userId) {
+  if (!questionOpt) {
     return NextResponse.json(
       { error: "Unauthorised operation" },
       { status: 401 }
@@ -86,7 +92,10 @@ export async function PUT(request: Request, { params }: ExamRequestParams) {
 
 export async function DELETE(request: Request, { params }: ExamRequestParams) {
   const session = await getServerSession(authOptions);
-  const userId = session?.user.id;
+
+  if (!isAdminEmail(session?.user?.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
 
   const examOpt = await prisma.exam.findUnique({
     where: {
@@ -97,7 +106,7 @@ export async function DELETE(request: Request, { params }: ExamRequestParams) {
     },
   });
 
-  if (!examOpt || examOpt.ownerId !== userId) {
+  if (!examOpt) {
     return NextResponse.json(
       { error: "Unauthorised operation" },
       { status: 401 }

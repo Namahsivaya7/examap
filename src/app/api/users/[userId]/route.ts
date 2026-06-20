@@ -3,7 +3,7 @@ import prisma from "@/app/lib/prisma";
 import { NextApiRequest } from "next";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export interface UserRequestParams {
   params: { userId: string };

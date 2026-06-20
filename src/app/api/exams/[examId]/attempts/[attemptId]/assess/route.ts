@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { isAdminEmail } from "@/utils/admin";
 import {
   AnswerType,
   AttemptStatus,
@@ -75,10 +76,12 @@ export async function PATCH(
     );
   }
 
-  if (
-    session?.user.id !== examOpt?.ownerId ||
-    (attemptOpt.test && session.user.id !== attemptOpt.test?.ownerId)
-  ) {
+  const isOwner = session?.user.id === examOpt?.ownerId;
+  const isAdmin = isAdminEmail(session?.user?.email);
+  const isTestOwner =
+    !!attemptOpt.test && session?.user.id === attemptOpt.test?.ownerId;
+
+  if (!isOwner && !isAdmin && !isTestOwner) {
     return NextResponse.json(
       { error: "User doesn't have previlage." },
       { status: 403 }

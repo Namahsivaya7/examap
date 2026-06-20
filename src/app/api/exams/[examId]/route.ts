@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { isAdminEmail } from "@/utils/admin";
 import { Exam, ExamStatus } from "@prisma/client";
 import { NextApiRequest } from "next";
 import { getServerSession } from "next-auth";
@@ -41,6 +42,12 @@ export async function GET(request: NextRequest, { params }: ExamRequestParams) {
 }
 
 export async function PUT(request: Request, { params }: ExamRequestParams) {
+  const session = await getServerSession(authOptions);
+
+  if (!isAdminEmail(session?.user?.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   const examId = params.examId;
   const update = await request.json();
   const { ownerId, subjectId, ...rest } = update;

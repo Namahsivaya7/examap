@@ -38,22 +38,22 @@ export const getExams = async (
       id: cursor,
     },
   };
+  const publishedFilter = author
+    ? { status: ExamStatus.Published, ownerId: author }
+    : { status: ExamStatus.Published };
+
+  const ownerFilter = userId
+    ? {
+        ownerId: userId,
+        status: {
+          in: status as ExamStatus[],
+        },
+      }
+    : null;
+
   const exams = await prisma.exam.findMany({
     where: {
-      OR: [
-        {
-          status: ExamStatus.Published,
-          ownerId: author,
-        },
-        userId
-          ? {
-              ownerId: userId,
-              status: {
-                in: status as ExamStatus[],
-              },
-            }
-          : {},
-      ],
+      OR: [publishedFilter, ...(ownerFilter ? [ownerFilter] : [])],
       title: {
         contains: q,
         mode: "insensitive",

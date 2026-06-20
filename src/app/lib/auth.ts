@@ -1,3 +1,4 @@
+import "server-only";
 
 import { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -6,7 +7,7 @@ import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import prisma from "./prisma";
 import { LoginType, User } from "@prisma/client";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 async function getUser(email: string): Promise<User | null> {
   try {

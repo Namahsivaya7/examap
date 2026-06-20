@@ -44,6 +44,8 @@ import {
   gold,
 } from "@ant-design/colors";
 import { appName } from "@/utils/config";
+import { isAdminEmail } from "@/utils/admin";
+import { useSession } from "next-auth/react";
 
 const FEATURES = [
   {
@@ -156,6 +158,9 @@ export default function Landing() {
   const {
     token: { padding },
   } = theme.useToken();
+  const { data: session } = useSession();
+  const canCreateExam = isAdminEmail(session?.user?.email);
+
   return (
     <Flex vertical>
       <Flex className="banner">
@@ -181,16 +186,18 @@ export default function Landing() {
                 Take Exam
               </Button>
             </Link>
-            <Link href={PATHS.NEW_EXAM} rel="nofollow">
-              <Button
-                size="large"
-                type="primary"
-                shape="round"
-                icon={<ReadOutlined />}
-              >
-                Create Exam
-              </Button>
-            </Link>
+            {canCreateExam && (
+              <Link href={PATHS.NEW_EXAM} rel="nofollow">
+                <Button
+                  size="large"
+                  type="primary"
+                  shape="round"
+                  icon={<ReadOutlined />}
+                >
+                  Create Exam
+                </Button>
+              </Link>
+            )}
           </Space>
         </div>
         <Image

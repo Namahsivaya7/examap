@@ -11,6 +11,7 @@ import { PATHS, UserData } from "@/utils/constants";
 interface ResultCardProps {
   attempt: AttemptType;
   handleSubmit?: () => void;
+  reviewerView?: boolean;
 }
 
 export default function ResultCard(props: ResultCardProps) {
@@ -18,6 +19,7 @@ export default function ResultCard(props: ResultCardProps) {
   const {
     attempt: { result, user },
     attempt,
+    reviewerView = false,
   } = props;
 
   const isMyResult = user.id === session?.user.id;
@@ -29,7 +31,8 @@ export default function ResultCard(props: ResultCardProps) {
     </Flex>
   );
 
-  const resultTitle = isMyResult ? "You have completed the exam!" : userDetails;
+  const resultTitle =
+    isMyResult && !reviewerView ? "You have completed the exam!" : userDetails;
   const attempsLink = `${PATHS.USERS}${session?.user.id}?active=${UserData.ATTEMPTS}`;
 
   switch (attempt.status) {
@@ -102,6 +105,19 @@ export default function ResultCard(props: ResultCardProps) {
         />
       );
     default:
+      if (reviewerView) {
+        return (
+          <Result
+            status="info"
+            title={userDetails}
+            subTitle={
+              <Typography.Text type="secondary">
+                Attempt status: {attempt.status}
+              </Typography.Text>
+            }
+          />
+        );
+      }
       return <></>;
   }
 }

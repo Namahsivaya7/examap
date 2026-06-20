@@ -3,14 +3,13 @@
 import {
   List,
   Button,
-  Popconfirm,
   theme,
   Flex,
-  Tooltip,
   Drawer,
   Space,
   Slider,
   Typography,
+  Divider,
 } from "antd";
 import {
   SecurityScanOutlined,
@@ -26,8 +25,10 @@ import { QuestionsNotFound } from "@/components/exam/ErrorStatus";
 import { AttemptType, ExamType } from "../../../types/prisma";
 import { AnswerType, AttemptStatus, Question } from "@prisma/client";
 import ResultCard from "./ResultCard";
+import StudentAttemptDetails from "./StudentAttemptDetails";
 import Link from "next/link";
 import { PATHS } from "@/utils/constants";
+import { isAdminEmail } from "@/utils/admin";
 import { useSession } from "next-auth/react";
 
 export type Assessment = Record<string, number>;
@@ -102,6 +103,8 @@ export default function ExamResult({
   const isAssessed = attempt?.status === AttemptStatus.Assessed;
 
   const isExamOwner = exam.ownerId === session?.user.id;
+  const isAdmin = isAdminEmail(session?.user?.email);
+  const canReview = isExamOwner || isAdmin;
 
   return (
     <Drawer
@@ -123,8 +126,15 @@ export default function ExamResult({
     >
       {attempt && (
         <Flex vertical style={{ gap: padding }}>
-          <ResultCard attempt={attempt} />
-          {isExamOwner && (
+          {canReview && <StudentAttemptDetails attempt={attempt} />}
+          <ResultCard attempt={attempt} reviewerView={canReview} />
+          {canReview && !!attempt.deviatedCount && (
+            <Typography.Text type="warning">
+              Student switched tabs or left the exam window{" "}
+              <b>{attempt.deviatedCount}</b> time(s)
+            </Typography.Text>
+          )}
+          {canReview && (
             <Flex
               style={{ padding: padding / 2, paddingBottom: 0 }}
               gap={padding}
@@ -147,11 +157,6 @@ export default function ExamResult({
               )}
               {isAssessed && !isAssessing && (
                 <>
-                  {attempt.deviatedCount && (
-                    <Typography.Text type="secondary">
-                      Deviated <b>{attempt.deviatedCount}</b> time(s)
-                    </Typography.Text>
-                  )}
                   <Button
                     icon={<FileSearchOutlined />}
                     type="dashed"
@@ -174,6 +179,11 @@ export default function ExamResult({
                 </Typography>
               )}
             </Flex>
+          )}
+          {canReview && (
+            <Divider orientation="left" plain>
+              Answers
+            </Divider>
           )}
           <List
             size="small"

@@ -21,6 +21,7 @@ import {
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PATHS } from "@/utils/constants";
+import { isAdminEmail } from "@/utils/admin";
 import { usePathname } from "next/navigation";
 import { ExamStatus } from "@prisma/client";
 import { ExamStatusColorMap } from "@/utils/util";
@@ -69,6 +70,7 @@ export default function ExamDetails({ exam }: ExamDetailsProps) {
     },
   ];
   const isLoggedIn = !!session?.user.id;
+  const isAdmin = isAdminEmail(session?.user?.email);
   const isExamOwner = session?.user.email === exam.owner.email;
   const examPath = `${PATHS.EXAMS}${exam.id}`;
   const attemptsPath = `${examPath}/attempts`;
@@ -101,15 +103,19 @@ export default function ExamDetails({ exam }: ExamDetailsProps) {
                       <HomeOutlined /> Go to Exam
                     </Link>
                   )}
-                  {isExamOwner && (
+                  {isAdmin && (
                     <Link key="edit" href={`${PATHS.EXAMS}${exam.id}/edit`}>
                       <EditOutlined /> Edit Exam
                     </Link>
                   )}
-                  {pathname !== attemptsPath && (
+                  {pathname !== attemptsPath && (isAdmin || isExamOwner) && (
                     <Link key="attempts" href={attemptsPath}>
-                      <UnorderedListOutlined />{" "}
-                      {isExamOwner ? "Responses" : "Previous Attempts"}
+                      <UnorderedListOutlined /> Responses
+                    </Link>
+                  )}
+                  {pathname !== attemptsPath && !isAdmin && !isExamOwner && (
+                    <Link key="attempts" href={attemptsPath}>
+                      <UnorderedListOutlined /> Previous Attempts
                     </Link>
                   )}
                 </Space>

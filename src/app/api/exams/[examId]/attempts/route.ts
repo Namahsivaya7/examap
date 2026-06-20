@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { isAdminEmail } from "@/utils/admin";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { ExamRequestParams } from "../route";
@@ -18,10 +19,11 @@ export async function GET(request: NextRequest, { params }: ExamRequestParams) {
     const exam = await prisma.exam.findUnique({
       where: {
         id: examId,
-        ownerId: session?.user.id,
       },
     });
-    if (!exam) {
+    const isOwner = exam?.ownerId === session?.user.id;
+    const isAdmin = isAdminEmail(session?.user?.email);
+    if (!exam || (!isOwner && !isAdmin)) {
       return NextResponse.json(
         { error: "Not allowed to see this result." },
         { status: 403 }
@@ -31,11 +33,14 @@ export async function GET(request: NextRequest, { params }: ExamRequestParams) {
   const attempts = await prisma.attempt.findMany({
     where: {
       examId,
-      testId,
-      userId,
+      ...(userId ? { userId } : {}),
+      ...(testId ? { testId } : {}),
     },
     include: {
       user: true,
+    },
+    orderBy: {
+      updatedAt: "desc",
     },
   });
 

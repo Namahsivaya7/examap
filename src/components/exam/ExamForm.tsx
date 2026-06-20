@@ -78,7 +78,7 @@ export default function ExamForm({
         initialValues={
           defaultValues
             ? defaultValues
-            : { status: ExamStatus.Draft, manualAssess: false, benchmark: 40.0 }
+            : { status: ExamStatus.Published, manualAssess: false, benchmark: 40.0 }
         }
         layout="vertical"
         onFinish={onFinish}

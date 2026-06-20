@@ -112,7 +112,10 @@ export default function Attempt({
 
   const handleSwitch = async () => {
     if (!attempt?.examId || !attempt.id) return;
-    updateDeviatedAttempt(attempt.examId, attempt.id);
+    const updated = await updateDeviatedAttempt(attempt.examId, attempt.id);
+    if (updated) {
+      handleAttemptChange(updated);
+    }
   };
 
   const isElapsed = isExamElapsed(attempt, exam);

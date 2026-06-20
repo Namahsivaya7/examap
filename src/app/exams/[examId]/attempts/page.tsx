@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import Attempts from "@/components/exam/Attempts";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/store/toastStore";
+import { isAdminEmail } from "@/utils/admin";
 
 export default function Attempt({ params }: { params: { examId: string } }) {
   const { data: session } = useSession();
@@ -47,15 +48,19 @@ export default function Attempt({ params }: { params: { examId: string } }) {
         setExamLoading(false);
         // Get attemps based on exam result:
         let userId;
-        if (res.ownerId !== session?.user.id) {
-          // If not exam owner, bring attempts of logged in user.
+        if (
+          res.ownerId !== session?.user.id &&
+          !isAdminEmail(session?.user?.email)
+        ) {
+          // If not exam owner or admin, bring attempts of logged in user only.
           userId = session.user.id;
         }
         getAttempts(params.examId, userId, testId)
           .then((attempts) => {
             setAttempts(attempts);
           })
-          .catch((err) => {
+          .catch(() => {
+            error("Could not load exam responses.");
             setAttempts([]);
           })
           .finally(() => {

@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { isAdminEmail } from "@/utils/admin";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { ExamRequestParams } from "../route";
@@ -22,19 +23,17 @@ export async function GET(request: Request, { params }: ExamRequestParams) {
 
 export async function POST(request: Request, { params }: ExamRequestParams) {
   const session = await getServerSession(authOptions);
+
+  if (!isAdminEmail(session?.user?.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   const data = await request.json();
   const { examId, userId, subjectId, ...rest } = data;
 
   const examOpt = await prisma.exam.findUnique({
     where: { id: params.examId },
   });
-
-  if (session?.user.id !== examOpt?.ownerId) {
-    // return NextResponse.json(
-    //   { error: "Unauthorised operation" },
-    //   { status: 401 }
-    // );
-  }
 
   if (params.examId !== examOpt?.id) {
     return NextResponse.json(

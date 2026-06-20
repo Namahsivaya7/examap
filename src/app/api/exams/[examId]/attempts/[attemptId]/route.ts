@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { isAdminEmail } from "@/utils/admin";
 import { AttemptStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -9,6 +10,7 @@ export interface AttemptRequestParams {
 }
 
 export async function GET(request: Request, { params }: AttemptRequestParams) {
+  const session = await getServerSession(authOptions);
   const examId = params.examId;
   const attempt = await prisma.attempt.findUnique({
     where: {
@@ -17,9 +19,26 @@ export async function GET(request: Request, { params }: AttemptRequestParams) {
     },
     include: {
       user: true,
-      exam: true,
+      exam: {
+        include: {
+          subject: true,
+          questions: true,
+        },
+      },
     },
   });
+
+  if (!attempt) {
+    return NextResponse.json({ error: "Attempt not found" }, { status: 404 });
+  }
+
+  const isOwner = attempt.userId === session?.user.id;
+  const isExamOwner = attempt.exam.ownerId === session?.user.id;
+  const isAdmin = isAdminEmail(session?.user?.email);
+
+  if (!isOwner && !isExamOwner && !isAdmin) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
 
   return NextResponse.json(attempt);
 }

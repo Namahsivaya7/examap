@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/lib/auth";
 import prisma from "@/app/lib/prisma";
+import { isAdminEmail } from "@/utils/admin";
 import { ExamStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -51,7 +52,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  //const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
+
+  if (!isAdminEmail(session?.user?.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   const data = await request.json();
   const { subjectId, ownerId, ...rest } = data;
   const exam = await prisma.exam.create({

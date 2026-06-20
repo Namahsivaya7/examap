@@ -1,4 +1,5 @@
 import { PATHS } from "@/utils/constants";
+import { isAdminEmail } from "@/utils/admin";
 import {
   Button,
   Dropdown,
@@ -53,14 +54,18 @@ export default function UserMenu() {
       ),
       key: `${PATHS.USERS}${session?.user.id}`,
     },
-    {
-      label: (
-        <Link href={PATHS.NEW_EXAM} type="button">
-          Create Exam
-        </Link>
-      ),
-      key: PATHS.NEW_EXAM,
-    },
+    ...(isAdminEmail(session?.user?.email)
+      ? [
+          {
+            label: (
+              <Link href={PATHS.NEW_EXAM} type="button">
+                Create Exam
+              </Link>
+            ),
+            key: PATHS.NEW_EXAM,
+          },
+        ]
+      : []),
     {
       label: (
         <Link href={PATHS.SETTINGS} rel="noopener noreferrer" type="button">

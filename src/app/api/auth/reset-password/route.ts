@@ -1,6 +1,6 @@
 import prisma from "@/app/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { sendEmailToUser } from "@/app/lib/mailer";
 import jwt from "jsonwebtoken";
 import { appName, siteAddress } from "@/utils/config";
