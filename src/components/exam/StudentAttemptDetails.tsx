@@ -7,11 +7,12 @@ import { AttemptStatus } from "@prisma/client";
 import UserImage from "../auth/UserImage";
 import dayjs from "dayjs";
 
-const attemptStatusColor: Record<AttemptStatus, string> = {
+const attemptStatusColor: Partial<Record<AttemptStatus, string>> = {
   [AttemptStatus.Created]: "default",
   [AttemptStatus.InProgress]: "processing",
   [AttemptStatus.InReview]: "warning",
   [AttemptStatus.Assessed]: "success",
+  [AttemptStatus.Elapsed]: "error",
 };
 
 export default function StudentAttemptDetails({
@@ -40,7 +41,9 @@ export default function StudentAttemptDetails({
       key: "status",
       label: "Attempt status",
       children: (
-        <Tag color={attemptStatusColor[attempt.status]}>{attempt.status}</Tag>
+        <Tag color={attemptStatusColor[attempt.status] ?? "default"}>
+          {attempt.status}
+        </Tag>
       ),
     },
     {

@@ -134,7 +134,7 @@ export default function Attempts({
         dataIndex: "result.score",
         ellipsis: true,
         key: "score",
-        render: (_, d) => (
+        render: (_: unknown, d: AttemptType) => (
           <Space split="/">
             <Badge
               key="score"
@@ -170,9 +170,12 @@ export default function Attempts({
         render: (_: unknown, d: AttemptType) => <Tag>{d.status}</Tag>,
       },
       {
-        render: (_, d) => (
+        title: "Result",
+        ellipsis: true,
+        dataIndex: "result.status",
+        key: "status",
+        render: (_: unknown, d: AttemptType) => (
           <Tag
-            key="status"
             color={d.result?.status === ResultStatus.Passed ? "green" : "red"}
           >
             {d.result?.status ?? "Pending"}
@@ -183,7 +186,7 @@ export default function Attempts({
         title: "Submitted",
         dataIndex: "updatedAt",
         key: "updatedAt",
-        render: (_, d) => (
+        render: (_: unknown, d: AttemptType) => (
           <Tooltip title={dayjs(d.updatedAt).format()}>
             <Typography.Text>{dayjs(d.updatedAt).fromNow()}</Typography.Text>
           </Tooltip>
@@ -195,7 +198,7 @@ export default function Attempts({
         title: "",
         dataIndex: "actions",
         key: "actions",
-        render: (_, d) => (
+        render: (_: unknown, d: AttemptType) => (
           <Space>
             {exam && (
               <Tooltip title="View answers and student details">
