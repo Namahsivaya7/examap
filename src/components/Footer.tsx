@@ -1,11 +1,10 @@
 import { Flex, Layout, Typography, theme } from "antd";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PATHS } from "@/utils/constants";
+import { appName } from "@/utils/config";
 
 export default function Footer() {
-  const { data: session, status } = useSession();
   const pathname = usePathname();
 
   const {
@@ -16,8 +15,7 @@ export default function Footer() {
     <Layout.Footer className="footer">
       <Flex justify="space-between">
         <Typography.Text>
-          &copy; {new Date().getFullYear()} Trisandya Technology Solutions Pvt.
-          Ltd.
+          &copy; {new Date().getFullYear()} {appName}
         </Typography.Text>
         {pathname !== PATHS.PRIVACY && (
           <Typography.Text>

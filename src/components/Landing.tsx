@@ -268,14 +268,10 @@ export default function Landing() {
                 <Typography.Title level={3}>Contact Us</Typography.Title>
               </Descriptions.Item>
               <Descriptions.Item>
-                <b>Trisandya Technology Solutions Pvt. Ltd.</b>
+                <b>{appName}</b>
               </Descriptions.Item>
               <Descriptions.Item>
                 <Link href="mailto:contact@examap.in">contact@examap.in</Link>
-              </Descriptions.Item>
-              <Descriptions.Item>
-                DNO: 3-13A, Jammichettu Center, Pedakallepalli, AP, India -
-                521130
               </Descriptions.Item>
             </Descriptions>
           </Col>

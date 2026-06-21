@@ -58,15 +58,6 @@ export const ORG_SCHEMA = {
     name: appName,
     logo: appLogo,
     url: siteAddress,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress:
-        "3-13A, Jammichettu Center, Pedakallepalli, Mopidevi Mandal, Krishna Dist",
-      addressLocality: "Vijayawada",
-      addressRegion: "Andhra Pradesh",
-      postalCode: "521130",
-      addressCountry: "India",
-    },
     sameAs: [],
   }),
 };

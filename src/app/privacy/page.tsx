@@ -63,9 +63,7 @@ export default function PrivacyPolicy() {
           <Typography>
             <strong>Company</strong> (referred to as either &quot;the
             Company&quot;, &quot;We&quot;, &quot;Us&quot; or &quot;Our&quot; in
-            this Agreement) refers to Trisandya Technology Solutions Pvt. Ltd.,
-            3-13A, Jammichettu Center, Pedakallepalli, Mopidevi Mandal, Krishna
-            Dist, AP, India - 521130.
+            this Agreement) refers to {appName}.
           </Typography>
         </li>
         <li>
@@ -564,7 +562,7 @@ export default function PrivacyPolicy() {
         <li>
           <Typography>
             By email:{" "}
-            <a href="mailto:office@trisandya.com">[office]@[trisandya].[com]</a>
+            <a href="mailto:contact@examap.in">contact@examap.in</a>
           </Typography>
         </li>
         <li>
